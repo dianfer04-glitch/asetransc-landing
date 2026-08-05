@@ -725,8 +725,11 @@
           <input type="text" id="empresa" name="empresa">
         </div>
         <div class="field">
-          <label for="flota">Tamaño de flota <span class="req">*</span></label>
-          <select id="flota" name="flota" required>
+          <!-- id="flota-tamano" y no "flota": la sección de navegación ya usa
+               id="flota", y con el id repetido getElementById devolvía la sección
+               en vez de este campo, así que el dato nunca llegaba al mensaje. -->
+          <label for="flota-tamano">Tamaño de flota <span class="req">*</span></label>
+          <select id="flota-tamano" name="flota" required>
             <option value="" disabled selected>Selecciona una opción</option>
             <option value="1 vehiculo">1 vehículo</option>
             <option value="2-4 vehiculos">2-4 vehículos</option>
@@ -812,7 +815,7 @@
       'Teléfono: ' + val('telefono'),
     ];
     if(val('empresa')) lineas.push('Empresa: ' + val('empresa'));
-    lineas.push('Tamaño de flota: ' + etiqueta('flota'));
+    lineas.push('Tamaño de flota: ' + etiqueta('flota-tamano'));
     lineas.push('Interés: ' + etiqueta('interes'));
 
     const url = 'https://wa.me/' + WHATSAPP_ASESOR + '?text=' + encodeURIComponent(lineas.join('\n'));
