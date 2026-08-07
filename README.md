@@ -49,6 +49,34 @@ Antes de conectar la landing conviene ejecutar la función `probarGuardado()` de
 editor de Apps Script: escribe una fila de prueba en la hoja (hay que borrarla después)
 y confirma que las columnas quedan alineadas.
 
+## Código QR
+
+En `assets/` está el QR que lleva a la landing, listo para usar:
+
+| Archivo | Para qué |
+|---|---|
+| `qr-landing.png` | 1400×1400 px — volantes, tarjetas, publicaciones en redes |
+| `qr-landing.svg` | Vectorial — pendones, vallas, cualquier tamaño sin perder nitidez |
+
+Lleva `?utm_source=qr`, así que los leads que entren escaneándolo quedan
+identificados en el CRM y no se confunden con los de otros canales.
+
+Para generar uno de una campaña puntual:
+
+```bash
+node generar-qr.js qr feria-neiva
+```
+
+Eso crea `qr-landing-feria-neiva.png` con `utm_campaign=feria-neiva`, y en el CRM
+esos leads llegan con la campaña anotada en la columna Notas. Sirve para saber qué
+volante o qué evento funcionó.
+
+Usa corrección de errores alta (nivel H): un QR impreso se ensucia, se dobla y se
+escanea de lejos; con corrección baja dejaría de leerse.
+
+**Al imprimirlo:** mínimo 2,5 cm de lado para escaneo de cerca, y deja el margen
+blanco alrededor — sin ese margen muchos lectores no lo detectan.
+
 ## Meta Ads
 
 La página trae el **Meta Pixel** listo, pero desactivado hasta que se le ponga el ID:
