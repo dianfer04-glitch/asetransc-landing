@@ -385,6 +385,7 @@
     margin-bottom:6px; color:var(--azul);
   }
   .field label .req{color:var(--naranja);}
+  .field label .opt{color:#8A9096; font-weight:400; font-size:.9em;}
   .field input, .field select{
     width:100%;
     padding:12px 14px;
@@ -717,6 +718,10 @@
           <input type="tel" id="telefono" name="telefono" pattern="[0-9+ ]{7,15}" required>
         </div>
         <div class="field">
+          <label for="correo">Correo <span class="req">*</span></label>
+          <input type="email" id="correo" name="correo" required>
+        </div>
+        <div class="field">
           <label for="empresa">Empresa</label>
           <input type="text" id="empresa" name="empresa">
         </div>
@@ -742,6 +747,43 @@
             <option value="financiacion">Financiación (leasing, renting, factoring)</option>
             <option value="diagnostico">Diagnóstico gratuito de flota</option>
             <option value="otro">Otro</option>
+          </select>
+        </div>
+        <!-- Los tres campos siguientes alimentan columnas que el CRM ya tenía
+             pero que el formulario nunca preguntaba, así que quedaban vacías.
+             "Marca de interés" es la que alimenta el indicador "marca candidata
+             a landing propia" de la hoja Resumen. -->
+        <div class="field">
+          <label for="marca">Marca de interés <span class="req">*</span></label>
+          <select id="marca" name="marca" required>
+            <option value="" disabled selected>Selecciona una opción</option>
+            <option value="Volkswagen">Volkswagen</option>
+            <option value="Sinotruk">Sinotruk</option>
+            <option value="Chevrolet">Chevrolet</option>
+            <option value="Foton">Foton</option>
+            <option value="JAC">JAC</option>
+            <option value="Isuzu">Isuzu</option>
+            <option value="Hino">Hino</option>
+            <option value="Sin definir">Aún no lo tengo definido</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="mercado">¿Dónde operas principalmente? <span class="opt">(opcional)</span></label>
+          <select id="mercado" name="mercado">
+            <option value="" selected>Prefiero no decirlo</option>
+            <option value="Huila">Huila</option>
+            <option value="Externo">Fuera del Huila</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sector">¿Qué transportas? <span class="opt">(opcional)</span></label>
+          <select id="sector" name="sector">
+            <option value="" selected>Prefiero no decirlo</option>
+            <option value="Café">Café</option>
+            <option value="Piscicultura">Piscicultura</option>
+            <option value="Petróleo">Petróleo</option>
+            <option value="SECOP">Contratos públicos (SECOP)</option>
+            <option value="Otro">Otro</option>
           </select>
         </div>
         <!-- honeypot anti-spam: campo oculto, si un bot lo llena, se descarta el envío -->
@@ -786,10 +828,16 @@
 
 <script>
   // ===== Formulario de contacto =====
-  // El formulario arma un mensaje de WhatsApp con los datos y abre el chat del
-  // asesor. Sin backend ni base de datos: el prospecto llega directo al celular
-  // donde ya se atiende, en vez de quedarse en una hoja que nadie revisa.
+  // Al enviar pasan dos cosas, en este orden:
+  //   1. El lead se registra en el CRM (hoja de Google) — así queda guardado
+  //      aunque el cliente se arrepienta y no llegue a mandar el WhatsApp.
+  //   2. Se abre el chat de WhatsApp con el mensaje ya escrito.
   const WHATSAPP_ASESOR = '573028071112';
+
+  // URL del Apps Script publicado sobre la hoja ASETRANSC_Seguimiento_Leads_actualizado.
+  // Mientras esté vacía, el formulario solo abre WhatsApp (no se pierde el lead,
+  // pero tampoco queda registrado en el CRM). Ver README para publicarla.
+  const CRM_ENDPOINT = '';
 
   document.getElementById('leadForm').addEventListener('submit', function(e){
     e.preventDefault();
@@ -804,15 +852,45 @@
       return sel.selectedIndex > 0 ? sel.options[sel.selectedIndex].text : '';
     };
 
+    // Las claves coinciden con las columnas de la hoja "Leads" del CRM.
+    const lead = {
+      nombre:   val('nombre'),
+      empresa:  val('empresa'),
+      telefono: val('telefono'),
+      correo:   val('correo'),
+      flota:    etiqueta('flota-tamano'),
+      marca:    val('marca'),
+      interes:  etiqueta('interes'),
+      mercado:  val('mercado'),
+      sector:   val('sector')
+    };
+
+    // 1) Registrar en el CRM. Se usa 'no-cors' y sendBeacon porque Apps Script
+    //    no devuelve cabeceras CORS; no podemos leer la respuesta, pero el dato
+    //    sí llega. Si falla, no se bloquea el paso a WhatsApp.
+    if(CRM_ENDPOINT){
+      try{
+        const cuerpo = new Blob([JSON.stringify(lead)], {type:'text/plain;charset=UTF-8'});
+        if(!navigator.sendBeacon || !navigator.sendBeacon(CRM_ENDPOINT, cuerpo)){
+          fetch(CRM_ENDPOINT, {method:'POST', mode:'no-cors', body: cuerpo, keepalive:true});
+        }
+      }catch(err){ /* el CRM no debe impedir que el cliente escriba */ }
+    }
+
+    // 2) Abrir WhatsApp con el mensaje armado
     const lineas = [
       'Hola ASETRANSC, quiero solicitar mi diagnóstico gratuito.',
       '',
-      'Nombre: ' + val('nombre'),
-      'Teléfono: ' + val('telefono'),
+      'Nombre: ' + lead.nombre,
+      'Teléfono: ' + lead.telefono,
+      'Correo: ' + lead.correo,
     ];
-    if(val('empresa')) lineas.push('Empresa: ' + val('empresa'));
-    lineas.push('Tamaño de flota: ' + etiqueta('flota-tamano'));
-    lineas.push('Interés: ' + etiqueta('interes'));
+    if(lead.empresa) lineas.push('Empresa: ' + lead.empresa);
+    lineas.push('Tamaño de flota: ' + lead.flota);
+    lineas.push('Marca de interés: ' + lead.marca);
+    lineas.push('Interés: ' + lead.interes);
+    if(lead.mercado) lineas.push('Opera en: ' + lead.mercado);
+    if(lead.sector)  lineas.push('Transporta: ' + lead.sector);
 
     const url = 'https://wa.me/' + WHATSAPP_ASESOR + '?text=' + encodeURIComponent(lineas.join('\n'));
 

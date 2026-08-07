@@ -19,12 +19,56 @@ Es un sitio estático: no necesita servidor, base de datos ni mantenimiento.
 
 ## Cómo se capturan los prospectos
 
-El formulario **no usa backend**. Al enviarlo, arma un mensaje de WhatsApp con los
-datos que llenó el cliente y abre el chat del asesor. El prospecto llega directo al
-celular donde ya se atiende, en vez de quedarse en una hoja de cálculo que nadie revisa.
+Al enviar el formulario pasan dos cosas:
 
-El número del asesor está en la constante `WHATSAPP_ASESOR` dentro de `index.html`.
-Para cambiarlo, se edita ahí (aparece también en el botón flotante de WhatsApp).
+1. **Se registra el lead en el CRM** — la hoja `ASETRANSC_Seguimiento_Leads_actualizado`
+   de Google Drive. Así queda guardado aunque el cliente se arrepienta y no llegue a
+   mandar el WhatsApp.
+2. **Se abre el chat de WhatsApp** del asesor con el mensaje ya escrito.
+
+El número del asesor está en la constante `WHATSAPP_ASESOR` dentro de `index.html`
+(aparece también en el botón flotante de WhatsApp).
+
+### Conectar el CRM (paso único, lo hace el dueño de la hoja)
+
+Mientras `CRM_ENDPOINT` esté vacío en `index.html`, el formulario **solo abre WhatsApp**:
+el lead no se pierde, pero tampoco queda registrado en la hoja.
+
+1. Abrir la hoja `ASETRANSC_Seguimiento_Leads_actualizado` en Google Sheets
+2. Menú **Extensiones → Apps Script**
+3. Borrar el contenido y pegar `crm-apps-script.gs` completo (está en este repo)
+4. Guardar
+5. **Implementar → Nueva implementación → Aplicación web**
+   - Ejecutar como: **Yo**
+   - Quién tiene acceso: **Cualquier usuario**
+6. Autorizar cuando lo pida
+7. Copiar la URL resultante y pegarla en `CRM_ENDPOINT` dentro de `index.html`
+8. `git commit` y `git push`
+
+Antes de conectar la landing conviene ejecutar la función `probarGuardado()` desde el
+editor de Apps Script: escribe una fila de prueba en la hoja (hay que borrarla después)
+y confirma que las columnas quedan alineadas.
+
+### Qué columna llena cada campo
+
+| Campo del formulario | Columna del CRM |
+|---|---|
+| *(automático)* | A · Fecha contacto |
+| Nombre completo | B · Nombre |
+| Empresa | C · Empresa |
+| Teléfono / WhatsApp | D · Teléfono |
+| Correo | E · Correo |
+| Tamaño de flota | F · Tipo de flota |
+| Marca de interés | G · Marca de interés |
+| *(fijo: "Landing page")* | H · Origen del lead |
+| *(fijo: "Nuevo")* | I · Estado |
+| *(automático: +7 días)* | J · Próximo seguimiento |
+| *(fijo, ver `RESPONSABLE`)* | K · Responsable |
+| ¿Qué te interesa? | L · Notas |
+| ¿Dónde operas? | M · Mercado |
+| ¿Qué transportas? | N · Sector vertical |
+
+"¿Qué te interesa?" no tiene columna propia en el CRM, así que se guarda en **Notas**.
 
 ## Cómo hacer cambios
 
