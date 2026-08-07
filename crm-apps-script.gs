@@ -3,10 +3,12 @@
  * ASETRANSC_Seguimiento_Leads_actualizado.
  *
  * Instalación (una sola vez):
- *   1. Abrir la hoja en Google Sheets
- *   2. Menú Extensiones → Apps Script
- *   3. Borrar lo que haya y pegar este archivo completo
- *   4. Guardar (icono del disquete)
+ *   1. Ir a script.google.com (o abrir la hoja → Extensiones → Apps Script;
+ *      da igual, el script abre la hoja por ID)
+ *   2. Pegar este archivo completo, reemplazando lo que haya
+ *   3. Guardar (icono del disquete) -- hasta que no se guarde, el menú de
+ *      funciones aparece vacío y no se puede ejecutar nada
+ *   4. Elegir la función probarGuardado y pulsar Ejecutar, para autorizar
  *   5. Implementar → Nueva implementación → tipo "Aplicación web"
  *        · Ejecutar como: Yo
  *        · Quién tiene acceso: Cualquier usuario
@@ -17,6 +19,11 @@
  * implementaciones → editar → Nueva versión", si no se sigue ejecutando la
  * versión anterior.
  */
+
+// Identificador de la hoja ASETRANSC_Seguimiento_Leads_actualizado. Se abre por
+// ID y no con getActiveSpreadsheet() para que funcione también si el script se
+// creó como proyecto suelto (script.google.com) y no desde Extensiones.
+var ID_HOJA = '13FWsqyDH3pKaDddr77Fl6YgwczM8qK1IrShJ8SS623U';
 
 // La fila 3 tiene los encabezados; los datos arrancan en la 4.
 var FILA_ENCABEZADOS = 3;
@@ -46,8 +53,8 @@ function doPost(e) {
 }
 
 function guardarLead(d) {
-  var hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(NOMBRE_HOJA);
-  if (!hoja) throw new Error('No existe la hoja "' + NOMBRE_HOJA + '"');
+  var hoja = SpreadsheetApp.openById(ID_HOJA).getSheetByName(NOMBRE_HOJA);
+  if (!hoja) throw new Error('No existe la pestaña "' + NOMBRE_HOJA + '" en la hoja indicada');
 
   var hoy = new Date();
   var seguimiento = new Date(hoy.getTime() + DIAS_SEGUIMIENTO * 24 * 60 * 60 * 1000);
