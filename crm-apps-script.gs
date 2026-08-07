@@ -107,3 +107,30 @@ function probarGuardado() {
     sector: 'Café'
   });
 }
+
+/**
+ * Restaura los encabezados de las columnas A..F, que se perdieron al pasar el
+ * archivo de Excel a Google Sheets: quedaron en blanco y sin el fondo verde,
+ * así que la tabla se veía cortada.
+ *
+ * Copia el formato desde G3 en vez de fijarlo a mano, para que quede idéntico
+ * al resto aunque el diseño de la hoja cambie más adelante.
+ *
+ * Ejecutar una sola vez desde el editor.
+ */
+function repararEncabezados() {
+  var hoja = SpreadsheetApp.openById(ID_HOJA).getSheetByName(NOMBRE_HOJA);
+  if (!hoja) throw new Error('No existe la pestaña "' + NOMBRE_HOJA + '"');
+
+  var titulos = ['Fecha contacto', 'Nombre', 'Empresa', 'Teléfono', 'Correo', 'Tipo de flota'];
+  var destino = hoja.getRange(FILA_ENCABEZADOS, 1, 1, titulos.length); // A3:F3
+
+  // El formato se toma de una columna que sí lo conserva.
+  hoja.getRange(FILA_ENCABEZADOS, 7).copyTo(destino, SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
+  destino.setValues([titulos]);
+
+  // La franja azul del título también se cortaba en la columna G.
+  hoja.getRange(1, 7).copyTo(hoja.getRange(1, 1, 1, 6), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
+
+  SpreadsheetApp.flush();
+}
