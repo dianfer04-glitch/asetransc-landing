@@ -49,6 +49,27 @@ Antes de conectar la landing conviene ejecutar la función `probarGuardado()` de
 editor de Apps Script: escribe una fila de prueba en la hoja (hay que borrarla después)
 y confirma que las columnas quedan alineadas.
 
+## Meta Ads
+
+La página trae el **Meta Pixel** listo, pero desactivado hasta que se le ponga el ID:
+`window.META_PIXEL_ID` en el `<head>` de `index.html`. Se saca del Administrador de
+eventos de Meta → Orígenes de datos. Mientras esté vacío no se carga ningún script de
+Meta ni se envía nada.
+
+Eventos que ya se registran:
+
+| Evento | Cuándo se dispara | Para qué sirve |
+|---|---|---|
+| `PageView` | Al abrir la página | Público de remarketing |
+| `Lead` | Al enviar el formulario | **Es el que optimiza la campaña.** Incluye la marca de interés como categoría |
+| `Contact` | Al pulsar el botón flotante de WhatsApp | Evita subestimar resultados: sin él solo contarían los envíos del formulario |
+
+Antes de gastar en anuncios conviene verificar con la extensión **Meta Pixel Helper**
+de Chrome que los tres eventos aparecen.
+
+**Pendiente para poder anunciar:** Meta exige una **política de privacidad** accesible
+desde la landing para aprobar campañas que capturan datos. Todavía no existe.
+
 ### Qué columna llena cada campo
 
 | Campo del formulario | Columna del CRM |

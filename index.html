@@ -28,6 +28,29 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- ===== Meta Pixel =====
+     Necesario para que Meta Ads sepa qué anuncios generan leads y pueda
+     optimizar la entrega. Sin esto la campaña gasta a ciegas.
+     Pega tu ID de píxel en META_PIXEL_ID (Administrador de eventos → Orígenes
+     de datos). Mientras esté vacío no se carga nada: la página no se rompe
+     ni envía datos a Meta. -->
+<script>
+  window.META_PIXEL_ID = '';
+
+  if (window.META_PIXEL_ID) {
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', window.META_PIXEL_ID);
+    fbq('track', 'PageView');
+  }
+</script>
+<noscript><img height="1" width="1" style="display:none" alt=""
+  src="https://www.facebook.com/tr?id=&ev=PageView&noscript=1"></noscript>
+<!-- ===== fin Meta Pixel ===== -->
 <style>
   :root{
     --azul:#1B3A4B;
@@ -877,7 +900,16 @@
       }catch(err){ /* el CRM no debe impedir que el cliente escriba */ }
     }
 
-    // 2) Abrir WhatsApp con el mensaje armado
+    // 2) Avisar a Meta Ads que hubo una conversión. Es lo que permite a Meta
+    //    saber qué anuncio trajo al prospecto y optimizar hacia ese perfil.
+    if(window.fbq){
+      fbq('track', 'Lead', {
+        content_name: 'Diagnóstico gratuito',
+        content_category: lead.marca || 'Sin definir'
+      });
+    }
+
+    // 3) Abrir WhatsApp con el mensaje armado
     const lineas = [
       'Hola ASETRANSC, quiero solicitar mi diagnóstico gratuito.',
       '',
@@ -904,6 +936,16 @@
     }
     this.reset();
   });
+
+  // El botón flotante de WhatsApp también cuenta como contacto: si no se
+  // registra, Meta atribuye solo los envíos del formulario y subestima los
+  // resultados reales de la campaña.
+  const botonWa = document.querySelector('.wa-float');
+  if(botonWa){
+    botonWa.addEventListener('click', function(){
+      if(window.fbq) fbq('track', 'Contact', { content_name: 'WhatsApp flotante' });
+    });
+  }
 
   // ===== Animaciones al hacer scroll =====
   const revealItems = document.querySelectorAll('.reveal, .reveal-stagger');
