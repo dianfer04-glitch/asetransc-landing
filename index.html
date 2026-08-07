@@ -816,7 +816,7 @@
         </div>
         <button type="submit" class="btn btn-primary">Solicitar diagnóstico gratuito</button>
       </form>
-      <p class="form-note">Al enviar aceptas ser contactado por ASETRANSC Colombia.</p>
+      <p class="form-note">Al enviar aceptas ser contactado por ASETRANSC Colombia y el tratamiento de tus datos según nuestra <a href="privacidad.html" style="color:var(--verde); text-decoration:underline;">Política de Tratamiento de Datos</a>.</p>
     </div>
   </div>
 </section>
@@ -842,7 +842,8 @@
       </div>
     </div>
     <div class="footer-bottom">
-      © 2026 ASETRANSC Colombia S.A.S. Todos los derechos reservados.
+      © 2026 ASETRANSC Colombia S.A.S. Todos los derechos reservados. ·
+      <a href="privacidad.html" style="color:#B9C6CC; text-decoration:underline; display:inline;">Política de Tratamiento de Datos</a>
     </div>
   </div>
 </footer>
@@ -861,6 +862,81 @@
   // Mientras esté vacía, el formulario solo abre WhatsApp (no se pierde el lead,
   // pero tampoco queda registrado en el CRM). Ver README para publicarla.
   const CRM_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzkTCar7Wyv-gYfY_VEZdoPBJoiWyk74KJmVy4Fm1-Le-wkl7gFUXZiQn51pS07WBiQ/exec';
+
+  // ===== Origen del lead =====
+  // Sin esto todos los leads entrarían como "Landing page" y la estadística de
+  // origen del CRM quedaría inservible: no se sabría si vinieron de Facebook,
+  // de Instagram o de un link suelto por WhatsApp.
+  //
+  // Se lee ?utm_source= de la URL y se traduce a las opciones que ya existen en
+  // la columna "Origen del lead" del CRM. Se guarda en sessionStorage porque el
+  // parámetro se pierde si el visitante navega dentro de la página antes de
+  // llenar el formulario.
+  const ORIGENES = {
+    instagram: 'Instagram',
+    ig: 'Instagram',
+    facebook: 'Facebook',
+    fb: 'Facebook',
+    meta: 'Facebook',
+    tiktok: 'TikTok',
+    whatsapp: 'WhatsApp',
+    wa: 'WhatsApp',
+    referido: 'Referido',
+    secop: 'SECOP',
+    // El CRM no tiene opción "Correo": se registran como "Otro" y el detalle
+    // queda en Notas vía utm_campaign, para no romper la lista desplegable.
+    correo: 'Otro',
+    email: 'Otro',
+    mailing: 'Otro',
+    qr: 'Otro'
+  };
+
+  function detectarOrigen(){
+    try{
+      const guardado = sessionStorage.getItem('asetransc_origen');
+      if(guardado) return guardado;
+
+      const params = new URLSearchParams(location.search);
+      const fuente = (params.get('utm_source') || '').toLowerCase().trim();
+      let origen = ORIGENES[fuente];
+
+      // Los anuncios de Meta agregan fbclid aunque no se haya puesto utm_source.
+      if(!origen && params.get('fbclid')) origen = 'Facebook';
+
+      // Si vino de un enlace compartido, se intenta deducir por el sitio anterior.
+      if(!origen && document.referrer){
+        const ref = document.referrer.toLowerCase();
+        if(ref.includes('instagram'))      origen = 'Instagram';
+        else if(ref.includes('facebook'))  origen = 'Facebook';
+        else if(ref.includes('tiktok'))    origen = 'TikTok';
+        else if(ref.includes('whatsapp'))  origen = 'WhatsApp';
+      }
+
+      origen = origen || 'Landing page';
+      sessionStorage.setItem('asetransc_origen', origen);
+      return origen;
+    }catch(err){
+      return 'Landing page';
+    }
+  }
+
+  // Campaña concreta, para saber qué anuncio trajo al prospecto. Va a Notas.
+  function detectarCampana(){
+    try{
+      const guardada = sessionStorage.getItem('asetransc_campana');
+      if(guardada !== null) return guardada;
+      const params = new URLSearchParams(location.search);
+      const campana = [params.get('utm_campaign'), params.get('utm_content')]
+        .filter(Boolean).join(' / ');
+      sessionStorage.setItem('asetransc_campana', campana);
+      return campana;
+    }catch(err){
+      return '';
+    }
+  }
+
+  detectarOrigen();
+  detectarCampana();
 
   document.getElementById('leadForm').addEventListener('submit', function(e){
     e.preventDefault();
@@ -885,7 +961,9 @@
       marca:    val('marca'),
       interes:  etiqueta('interes'),
       mercado:  val('mercado'),
-      sector:   val('sector')
+      sector:   val('sector'),
+      origen:   detectarOrigen(),
+      campana:  detectarCampana()
     };
 
     // 1) Registrar en el CRM. Se usa 'no-cors' y sendBeacon porque Apps Script

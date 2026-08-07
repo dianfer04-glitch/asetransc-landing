@@ -60,9 +60,18 @@ function guardarLead(d) {
   var seguimiento = new Date(hoy.getTime() + DIAS_SEGUIMIENTO * 24 * 60 * 60 * 1000);
   var zona = Session.getScriptTimeZone();
 
-  // "Interés" no tiene columna propia en el CRM: se guarda en Notas, que es
-  // donde el asesor ya escribe el contexto del prospecto.
-  var notas = d.interes ? ('Interés declarado en la landing: ' + d.interes) : '';
+  // "Interés" y la campaña no tienen columna propia en el CRM: se guardan en
+  // Notas, que es donde el asesor ya escribe el contexto del prospecto.
+  var notas = [];
+  if (d.interes) notas.push('Interés declarado en la landing: ' + d.interes);
+  if (d.campana) notas.push('Campaña: ' + d.campana);
+  notas = notas.join(' | ');
+
+  // El origen llega desde la landing según el utm_source del enlace. Si no vino
+  // ninguno (entrada directa), se deja "Landing page" como antes.
+  var ORIGENES_VALIDOS = ['Landing page', 'Instagram', 'Facebook', 'TikTok', 'WhatsApp',
+                          'Referido', 'Llamada fría', 'Visita directa', 'SECOP', 'Otro'];
+  var origen = ORIGENES_VALIDOS.indexOf(d.origen) !== -1 ? d.origen : 'Landing page';
 
   // El orden debe coincidir con las columnas A..N de la hoja.
   var fila = [
@@ -73,7 +82,7 @@ function guardarLead(d) {
     d.correo   || '',                                        // E Correo
     d.flota    || '',                                        // F Tipo de flota
     d.marca    || 'Sin definir',                             // G Marca de interés
-    'Landing page',                                          // H Origen del lead
+    origen,                                                  // H Origen del lead
     'Nuevo',                                                 // I Estado
     Utilities.formatDate(seguimiento, zona, 'yyyy-MM-dd'),   // J Próximo seguimiento
     RESPONSABLE,                                             // K Responsable
