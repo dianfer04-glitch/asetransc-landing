@@ -124,6 +124,11 @@
     max-width:1140px;
     margin:0 auto;
   }
+  /* El logo institucional ya trae el nombre "ASETRANSCOLOMBIA" y viene en
+     blanco con el emblema verde, pensado para fondos oscuros: se usa tal cual
+     y sustituye al texto, que si no aparecería repetido. */
+  .marca-nav{display:flex; flex-direction:column; gap:3px; text-decoration:none;}
+  .logo-img{height:30px; width:auto; max-width:100%; display:block;}
   .logo-block{display:flex; flex-direction:column; line-height:1.15;}
   .logo{
     font-family:'Poppins',sans-serif;
@@ -438,6 +443,8 @@
     margin-bottom:30px;
   }
   .footer-grid h4{color:var(--blanco); font-family:'Poppins',sans-serif; font-size:15px; margin-bottom:14px;}
+  /* En el pie sustituye al título de texto, por eso lleva el mismo margen. */
+  .logo-footer{height:26px; width:auto; max-width:100%; display:block; margin-bottom:14px;}
   .footer-grid p, .footer-grid a{font-size:13px; color:#B9C6CC; display:block; margin-bottom:8px;}
   .footer-bottom{
     border-top:1px solid rgba(255,255,255,.1);
@@ -513,10 +520,11 @@
 
 <header>
   <nav class="nav">
-    <div class="logo-block">
-      <div class="logo">ASETRANSCOLOMBIA</div>
+    <a href="#" class="marca-nav" aria-label="ASETRANSCOLOMBIA — inicio">
+      <img src="assets/logo-asetransc.png" alt="ASETRANSCOLOMBIA"
+           class="logo-img" width="1167" height="150">
       <div class="logo-tagline">Por un transporte sostenible en Colombia</div>
-    </div>
+    </a>
     <ul class="nav-links">
       <li><a href="#flota">Flota</a></li>
       <li><a href="#servicios">Servicios</a></li>
@@ -825,7 +833,8 @@
   <div class="container">
     <div class="footer-grid">
       <div>
-        <h4>ASETRANSC Colombia</h4>
+        <img src="assets/logo-asetransc.png" alt="ASETRANSCOLOMBIA"
+             class="logo-footer" width="1167" height="150" loading="lazy">
         <p>El aliado estratégico del transportador colombiano.</p>
       </div>
       <div>
