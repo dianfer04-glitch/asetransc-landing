@@ -28,6 +28,25 @@ const TIPOS = {
 };
 
 http.createServer((req, res) => {
+  // Guardado de piezas generadas con canvas (solo en local, para diseño).
+  if (req.method === 'POST' && req.url === '/_guardar') {
+    let cuerpo = '';
+    req.on('data', (c) => { cuerpo += c; });
+    req.on('end', () => {
+      try {
+        const { dataUri, nombre } = JSON.parse(cuerpo);
+        const buf = Buffer.from(dataUri.split(',')[1], 'base64');
+        const destino = path.join(RAIZ, 'assets', path.basename(nombre));
+        fs.writeFileSync(destino, buf);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true, kb: Math.round(buf.length / 1024) }));
+      } catch (e) {
+        res.writeHead(400).end(JSON.stringify({ ok: false, error: String(e) }));
+      }
+    });
+    return;
+  }
+
   // Se descarta la query (?utm_source=...) para resolver el archivo.
   let ruta = decodeURIComponent(req.url.split('?')[0]);
   if (ruta === '/') ruta = '/index.html';
