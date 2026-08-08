@@ -237,6 +237,9 @@
     background:rgba(255,255,255,.05);
   }
   .carousel-img-slot img{width:100%; height:100%; object-fit:cover; display:block;}
+  /* Las fotos verticales se recortan mucho al pasarlas a apaisado; anclando el
+     recorte arriba se conservan las caras en vez de quedarse con los pies. */
+  .carousel-img-slot img.foto-retrato{object-position:center 22%;}
   .carousel-img-slot span{
     font-size:12px;
     color:#B9C6CC;
@@ -561,16 +564,32 @@
       <p>Así se ve la flota de nuestros clientes en carretera. Desliza para ver más.</p>
     </div>
 
-    <!-- Solo se muestran fotos de marcas del portafolio y sin marcas de agua de
-         terceros. Se retiraron tres imágenes: dos eran de International (marca
-         que ASETRANSC no comercializa) y una traía el logo y el precio de otro
-         concesionario. Al agregar fotos nuevas, verificar ambas cosas. -->
+    <!-- Se descartaron los camiones International: no son marca del portafolio.
+         Al agregar fotos nuevas conviene revisar que la resolución pase de
+         ~700px de ancho; por debajo de eso el carrusel las amplía y se pixelan. -->
     <div class="carousel-track" id="flotaTrack">
       <div class="carousel-slide">
         <div class="carousel-img-slot">
-          <img src="assets/flota-2.jpg" alt="Chevrolet FVZ con carrocería de volqueta" loading="lazy" width="969" height="570">
+          <!-- Retrato (1200x1600) recortado a apaisado: se ancla arriba para que
+               el recorte no corte las caras del equipo. -->
+          <img src="assets/flota-entrega.jpg" alt="Entrega de un Sinotruk HOWO al cliente"
+               class="foto-retrato" loading="lazy" width="1200" height="1600">
+        </div>
+        <div class="carousel-caption">Entrega Sinotruk HOWO</div>
+      </div>
+      <div class="carousel-slide">
+        <div class="carousel-img-slot">
+          <img src="assets/flota-2.jpg" alt="Chevrolet FVZ con carrocería de volqueta"
+               loading="lazy" width="969" height="570">
         </div>
         <div class="carousel-caption">Chevrolet FVZ · Volqueta</div>
+      </div>
+      <div class="carousel-slide">
+        <div class="carousel-img-slot">
+          <img src="assets/flota-sitrak.jpg" alt="Tractocamión Sinotruk SITRAK"
+               loading="lazy" width="800" height="800">
+        </div>
+        <div class="carousel-caption">Sinotruk SITRAK · Tractocamión</div>
       </div>
     </div>
 
